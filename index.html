@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de QR Code PIX - DigiArt AR</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background-color: #f4f4f4; margin: 0; }
+        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
+        h2 { color: #333; margin-bottom: 20px; }
+        .campo-grupo { margin-bottom: 15px; text-align: left; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; margin-top: 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
+        #btnGerar { background-color: #32bcad; color: white; }
+        #btnBaixar { background-color: #333; color: white; display: none; }
+        #qrcode { margin-top: 20px; display: flex; justify-content: center; }
+        canvas { border: 10px solid white; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>DigiArt AR - Gerador PIX</h2>
+
+    <div class="campo-grupo">
+        <label>Chave PIX:</label>
+        <input type="text" id="chavePix" placeholder="E-mail, CPF ou Celular">
+    </div>
+
+    <div class="campo-grupo">
+        <label>Nome do Cliente (Nome do Arquivo):</label>
+        <input type="text" id="nomeCliente" placeholder="Ex: Careca Fights">
+    </div>
+
+    <button id="btnGerar" onclick="gerarQR()">Gerar QR Code</button>
+    
+    <div id="qrcode"></div>
+    
+    <button id="btnBaixar" onclick="baixarQR()">Baixar Imagem Renomeada</button>
+</div>
+
+<script>
+    let qrcodeInstance = null;
+
+    function gerarQR() {
+        const chave = document.getElementById('chavePix').value;
+        const qrcodeDiv = document.getElementById('qrcode');
+        const btnBaixar = document.getElementById('btnBaixar');
+
+        if (!chave) {
+            alert("Por favor, insira a chave PIX!");
+            return;
+        }
+
+        // Limpa o QR anterior
+        qrcodeDiv.innerHTML = "";
+        
+        // Gera o novo QR Code (Simples para PIX Estático)
+        qrcodeInstance = new QRCode(qrcodeDiv, {
+            text: chave,
+            width: 256,
+            height: 256,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+
+        // Mostra o botão de baixar
+        btnBaixar.style.display = "block";
+    }
+
+    function baixarQR() {
+        const nomeArquivo = document.getElementById('nomeCliente').value || "qrcode-pix-digiart";
+        const canvas = document.querySelector('#qrcode canvas');
+        
+        if (canvas) {
+            const link = document.createElement('a');
+            link.download = `${nomeArquivo}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        } else {
+            alert("Gere o QR Code primeiro!");
+        }
+    }
+</script>
+
+</body>
+</html>
