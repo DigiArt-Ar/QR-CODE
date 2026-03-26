@@ -3,30 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de QR Code PIX - DigiArt AR</title>
+    <title>Gerador de QR Code - DigiArt</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background-color: #f4f4f4; margin: 0; }
-        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
-        h2 { color: #333; margin-bottom: 20px; }
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background-color: #f0f2f5; margin: 0; }
+        .container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); width: 90%; max-width: 350px; text-align: center; }
+        h2 { color: #1a1a1a; margin-bottom: 20px; font-size: 1.4rem; }
         .campo-grupo { margin-bottom: 15px; text-align: left; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
-        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; margin-top: 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #444; font-size: 14px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none; }
+        input:focus { border-color: #32bcad; }
+        button { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.2s; }
         #btnGerar { background-color: #32bcad; color: white; }
-        #btnBaixar { background-color: #333; color: white; display: none; }
-        #qrcode { margin-top: 20px; display: flex; justify-content: center; }
-        canvas { border: 10px solid white; border-radius: 5px; }
+        #btnBaixar { background-color: #1a1a1a; color: white; display: none; }
+        #qrcode { margin-top: 15px; display: flex; justify-content: center; background: #fff; padding: 5px; }
+        /* Aqui diminuímos o tamanho visual sem perder qualidade */
+        canvas, img { width: 180px !important; height: 180px !important; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>DigiArt AR - Gerador PIX</h2>
+    <h2>Gerador de QR Code</h2>
 
     <div class="campo-grupo">
-        <label>Chave PIX:</label>
-        <input type="text" id="chavePix" placeholder="E-mail, CPF ou Celular">
+        <label>Texto ou Link:</label>
+        <input type="text" id="conteudoQr" placeholder="Cole o link ou chave aqui">
     </div>
 
     <div class="campo-grupo">
@@ -42,42 +44,40 @@
 </div>
 
 <script>
-    let qrcodeInstance = null;
-
     function gerarQR() {
-        const chave = document.getElementById('chavePix').value;
+        const texto = document.getElementById('conteudoQr').value;
         const qrcodeDiv = document.getElementById('qrcode');
         const btnBaixar = document.getElementById('btnBaixar');
 
-        if (!chave) {
-            alert("Por favor, insira a chave PIX!");
+        if (!texto) {
+            alert("Por favor, insira o conteúdo do QR Code!");
             return;
         }
 
-        // Limpa o QR anterior
         qrcodeDiv.innerHTML = "";
         
-        // Gera o novo QR Code (Simples para PIX Estático)
-        qrcodeInstance = new QRCode(qrcodeDiv, {
-            text: chave,
-            width: 256,
+        new QRCode(qrcodeDiv, {
+            text: texto,
+            width: 256, // Mantém resolução alta para o laser
             height: 256,
             colorDark : "#000000",
             colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.H
+            correctLevel : QRCode.CorrectLevel.H // Máxima qualidade de leitura
         });
 
-        // Mostra o botão de baixar
-        btnBaixar.style.display = "block";
+        setTimeout(() => {
+            btnBaixar.style.display = "block";
+        }, 100);
     }
 
     function baixarQR() {
-        const nomeArquivo = document.getElementById('nomeCliente').value || "qrcode-pix-digiart";
+        const nomeCliente = document.getElementById('nomeCliente').value.trim();
+        const nomeFinal = nomeCliente ? nomeCliente.replace(/\s+/g, '-') : "qrcode-digiart";
         const canvas = document.querySelector('#qrcode canvas');
         
         if (canvas) {
             const link = document.createElement('a');
-            link.download = `${nomeArquivo}.png`;
+            link.download = `${nomeFinal}.png`;
             link.href = canvas.toDataURL("image/png");
             link.click();
         } else {
