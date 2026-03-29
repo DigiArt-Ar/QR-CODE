@@ -3,86 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de QR Code - DigiArt</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <title>Calculadora de Orçamento - DigiArt</title>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background-color: #f0f2f5; margin: 0; }
-        .container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); width: 90%; max-width: 350px; text-align: center; }
-        h2 { color: #1a1a1a; margin-bottom: 20px; font-size: 1.4rem; }
-        .campo-grupo { margin-bottom: 15px; text-align: left; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: #444; font-size: 14px; }
-        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none; }
-        input:focus { border-color: #32bcad; }
-        button { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.2s; }
-        #btnGerar { background-color: #32bcad; color: white; }
-        #btnBaixar { background-color: #1a1a1a; color: white; display: none; }
-        #qrcode { margin-top: 15px; display: flex; justify-content: center; background: #fff; padding: 5px; }
-        /* Aqui diminuímos o tamanho visual sem perder qualidade */
-        canvas, img { width: 180px !important; height: 180px !important; }
+        :root {
+            --azul-porteiro: #007bff;
+            --dark-bg: #1e1e1e;
+            --card-bg: #2d2d2d;
+            --texto: #ffffff;
+        }
+        body { font-family: sans-serif; background: var(--dark-bg); color: var(--texto); display: flex; justify-content: center; padding: 20px; }
+        .card { background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 400px; border-left: 5px solid var(--azul-porteiro); }
+        h2 { text-align: center; margin-bottom: 20px; color: var(--azul-porteiro); letter-spacing: 1px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 0.9em; color: #bbb; }
+        input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #444; background: #121212; color: #fff; font-size: 16px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: var(--azul-porteiro); border: none; border-radius: 6px; color: white; font-weight: bold; font-size: 18px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        button:hover { background: #0056b3; transform: scale(1.02); }
+        .resultado { margin-top: 25px; padding: 15px; background: #121212; border-radius: 8px; border: 1px dashed var(--azul-porteiro); }
+        .res-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 1.1em; }
+        .total { font-size: 1.4em; font-weight: bold; border-top: 1px solid #444; padding-top: 10px; margin-top: 10px; color: #00ff88; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Gerador de QR Code</h2>
-
-    <div class="campo-grupo">
-        <label>Texto ou Link:</label>
-        <input type="text" id="conteudoQr" placeholder="Cole o link ou chave aqui">
+<div class="card">
+    <h2>DASHBOARD DIGIART</h2>
+    
+    <div class="input-group">
+        <label>Valor do Meu Serviço (Design/Vetor) R$</label>
+        <input type="number" id="valorServico" placeholder="Ex: 85" step="0.01">
     </div>
 
-    <div class="campo-grupo">
-        <label>Nome do Cliente (Nome do Arquivo):</label>
-        <input type="text" id="nomeCliente" placeholder="Ex: Careca Fights">
+    <div class="input-group">
+        <label>Tempo de Máquina (Minutos no LightBurn)</label>
+        <input type="number" id="tempoMaquina" placeholder="Ex: 45">
     </div>
 
-    <button id="btnGerar" onclick="gerarQR()">Gerar QR Code</button>
-    
-    <div id="qrcode"></div>
-    
-    <button id="btnBaixar" onclick="baixarQR()">Baixar Imagem Renomeada</button>
+    <div class="input-group">
+        <label>Custo de Material (MDF/Vinil) R$</label>
+        <input type="number" id="valorMaterial" placeholder="Ex: 10" step="0.01">
+    </div>
+
+    <button onclick="calcularOrcamento()">CALCULAR PREÇO FINAL</button>
+
+    <div id="displayResultado" class="resultado" style="display: none;">
+        <div class="res-item"><span>Serviço:</span> <span id="outServico">R$ 0,00</span></div>
+        <div class="res-item"><span>Máquina (S9):</span> <span id="outMaquina">R$ 0,00</span></div>
+        <div class="res-item"><span>Material:</span> <span id="outMaterial">R$ 0,00</span></div>
+        <div class="res-item total"><span>TOTAL:</span> <span id="outTotal">R$ 0,00</span></div>
+    </div>
 </div>
 
 <script>
-    function gerarQR() {
-        const texto = document.getElementById('conteudoQr').value;
-        const qrcodeDiv = document.getElementById('qrcode');
-        const btnBaixar = document.getElementById('btnBaixar');
-
-        if (!texto) {
-            alert("Por favor, insira o conteúdo do QR Code!");
-            return;
-        }
-
-        qrcodeDiv.innerHTML = "";
+    function calcularOrcamento() {
+        // Pega os valores dos inputs
+        const servico = parseFloat(document.getElementById('valorServico').value) || 0;
+        const tempo = parseFloat(document.getElementById('tempoMaquina').value) || 0;
+        const material = parseFloat(document.getElementById('valorMaterial').value) || 0;
         
-        new QRCode(qrcodeDiv, {
-            text: texto,
-            width: 256, // Mantém resolução alta para o laser
-            height: 256,
-            colorDark : "#000000",
-            colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.H // Máxima qualidade de leitura
-        });
+        // Regra de R$ 2,00 por minuto da S9
+        const custoMaquina = tempo * 2.00;
+        const total = servico + custoMaquina + material;
 
-        setTimeout(() => {
-            btnBaixar.style.display = "block";
-        }, 100);
-    }
+        // Formatação para Real (BRL)
+        const formatar = (v) => v.toLocaleString('pt-br', {style: 'currency', currency: 'BRL'});
 
-    function baixarQR() {
-        const nomeCliente = document.getElementById('nomeCliente').value.trim();
-        const nomeFinal = nomeCliente ? nomeCliente.replace(/\s+/g, '-') : "qrcode-digiart";
-        const canvas = document.querySelector('#qrcode canvas');
+        // Exibe os resultados
+        document.getElementById('outServico').innerText = formatar(servico);
+        document.getElementById('outMaquina').innerText = formatar(custoMaquina);
+        document.getElementById('outMaterial').innerText = formatar(material);
+        document.getElementById('outTotal').innerText = formatar(total);
         
-        if (canvas) {
-            const link = document.createElement('a');
-            link.download = `${nomeFinal}.png`;
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-        } else {
-            alert("Gere o QR Code primeiro!");
-        }
+        // Mostra a div de resultado
+        document.getElementById('displayResultado').style.display = 'block';
     }
 </script>
 
